@@ -1,21 +1,17 @@
 package it.unibo.es1;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 public class LogicsImpl implements Logics {
 
-    private final List<Integer> values; // = new ArrayList<>();
+    private final List<Integer> values;
 
     public LogicsImpl(final int size) {
-        this.values = new ArrayList<>(Collections.nCopies(size, 0));
-        /*
-         * for (int i = 0; i < size; i++) {
-         * values.add(i);
-         * }
-         */
+        this.values = new ArrayList<>(IntStream.range(0, size - 1).boxed().toList());
+        // this.values = new ArrayList<>(Collections.nCopies(size, 0));
     }
 
     @Override
@@ -30,19 +26,16 @@ public class LogicsImpl implements Logics {
 
     @Override
     public List<Boolean> enablings() {
-        final List<Boolean> list = new ArrayList<>(this.values.size());
-
-        for (int i = 0; i < this.values.size(); i++) {
-            list.add(enabled(i));
-        }
-        return list;
+        return this.values.stream()
+                .map(v -> v != this.values.size())
+                .toList();
     }
 
     @Override
     public int hit(final int elem) {
-        checkInput(elem);
+        checkIfInBounds(elem);
 
-        if (this.values.get(elem) < this.values.size()) {
+        if (this.values.get(elem) < size()) {
             this.values.set(elem, this.values.get(elem) + 1);
         }
 
@@ -51,47 +44,22 @@ public class LogicsImpl implements Logics {
 
     @Override
     public String result() {
-        String output = "<<";
-        final String END = ">>";
-        final String SEPARATOR = "|";
-
-        final var it = this.values.iterator();
-        while (it.hasNext()) {
-
-            if (it.hasNext()) {
-                output = output.concat(SEPARATOR);
-            }
-        }
-
-        return output.concat(END);
+        return "<<"
+                .concat(this.values.stream()
+                        .map(String::valueOf)
+                        .collect(Collectors.joining("|")))
+                .concat(">>");
     }
 
     @Override
     public boolean toQuit() {
-        Optional<Integer> prec = Optional.empty();
-
-        for (final Integer value : this.values) {
-            if (prec.isEmpty()) {
-                prec = Optional.of(value);
-            } else if (!prec.get().equals(value)) {
-                return false;
-            }
-        }
-
-        return true;
+        return this.values.stream()
+                .distinct()
+                .toArray().length == 1;
     }
 
-    private boolean enabled(final int elem) {
-        checkInput(elem);
-
-        if (this.values.get(elem) == this.values.size()) {
-            return false;
-        }
-        return true;
-    }
-
-    private void checkInput(final int elem) {
-        if (elem >= this.values.size()) {
+    private void checkIfInBounds(final int elem) {
+        if (elem >= size()) {
             throw new IllegalArgumentException("There is no button in the " + elem + " position.");
         }
     }
