@@ -10,6 +10,8 @@ public class LogicsImpl implements Logics {
     private final List<Integer> values;
 
     public LogicsImpl(final int size) {
+        checkSize(size);
+
         this.values = new ArrayList<>(IntStream.range(0, size - 1).boxed().toList());
         // this.values = new ArrayList<>(Collections.nCopies(size, 0));
     }
@@ -33,9 +35,9 @@ public class LogicsImpl implements Logics {
 
     @Override
     public int hit(final int elem) {
-        checkIfInBounds(elem);
+        checkIndex(elem);
 
-        if (this.values.get(elem) < size()) {
+        if (this.values.get(elem) < this.values.size()) {
             this.values.set(elem, this.values.get(elem) + 1);
         }
 
@@ -53,13 +55,20 @@ public class LogicsImpl implements Logics {
 
     @Override
     public boolean toQuit() {
+        // Returns true if all elements are equal to the first.
+        // The list is guaranteed to have at least 1 element.
         return this.values.stream()
-                .distinct()
-                .toArray().length == 1;
+                .allMatch(v -> v == this.values.getFirst());
     }
 
-    private void checkIfInBounds(final int elem) {
-        if (elem >= size()) {
+    private void checkSize(final int size) {
+        if (size <= 0) {
+            throw new IllegalArgumentException("Size " + size + " is not valid.");
+        }
+    }
+
+    private void checkIndex(final int elem) {
+        if (elem >= this.values.size()) {
             throw new IllegalArgumentException("There is no button in the " + elem + " position.");
         }
     }
